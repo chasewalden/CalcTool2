@@ -1,4 +1,6 @@
-module Writer where
+module PlaintextWriter where
+
+  
 
 write_MathExpression :: MathExpression -> String
 write_MathExpression expr = case expr of
