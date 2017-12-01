@@ -5,6 +5,7 @@ import Data.Char(isAlpha, isDigit)
 
 import Parser
 import LaTeXWriter
+import PlaintextWriter
 
 data MathExpression =
   Constant Double |
@@ -64,6 +65,29 @@ instance ParserFor MathExpression where
       parse_parenthesis = (do
         group <- between  (char '(' *> skipSpaces) (skipSpaces <* char ')') (parse_subtraction)
         return (ParenthesisExpression group)) <++ (parse_number +++ parse_variable)
+
+-- to plaintext
+
+instance ToPlaintext MathExpression where
+
+    plaintext (Constant c) =  show c
+    plaintext(Variable x) = [x]
+    plaintext(Subtract lhs rhs) =
+      (plaintext lhs) ++ " - " ++ (plaintext rhs)
+    plaintext(Add lhs rhs) =
+      (plaintext lhs) ++ " + " ++ (plaintext rhs)
+    plaintext(Multiply lhs rhs) =
+      (plaintext lhs) ++ " * " ++ (plaintext rhs)
+    plaintext(Divide lhs rhs) =
+      (plaintext lhs) ++ " / " ++ (plaintext rhs)
+    plaintext(Exponent lhs rhs) =
+      (plaintext lhs) ++ "^" ++ (plaintext rhs)
+    plaintext(ParenthesisExpression inner) =
+      "(" ++ (plaintext inner) ++ ")"
+    plaintext(MathFunction name body) = name ++ (plaintext (wrap body))
+      where
+        wrap body' @ (ParenthesisExpression _) = body'
+        wrap body' = ParenthesisExpression body'
 
 -- to latex
 
