@@ -1,64 +1,53 @@
 module MathUtil where
 
-import Data.Fixed(mod')
-import ParserFor
+import MathExpression
+
+derive :: MathExpression -> Char -> MathExpression
+
+derive (Constant a) _ = (Constant 0)
+
+derive (Variable x) y
+  | x == y = (Constant 1)
+  | otherwise = (Constant 0)
+
+derive (Add l r) v =
+  let lhs = (derive l v)
+      rhs = (derive r v)
+  in case (lhs, rhs) of
+    (Constant 0, _) -> rhs
+    (_, Constant 0) -> lhs
+    (Constant a, Constant b) -> (Constant (a + b))
+    _ -> (Add lhs rhs)
+
+derive (Subtract l r) v =
+  let lhs = (derive l v)
+      rhs = (derive r v)
+  in case (lhs, rhs) of
+    (Constant 0, Constant a) -> ( Constant ((0-1)*a) )
+    (Constant 0, _) -> Multiply (Constant (0-1)) rhs
+    (_, Constant 0) -> lhs
+    (Constant a, Constant b) -> (Constant (a - b))
+    _ -> (Subtract lhs rhs)
+
+derive (Multiply l r) v =
+  let lhs = (derive l v)
+      rhs = (derive r v)
+  in case (lhs, rhs) of
+    _ -> (Add (Multiply lhs r) (Multiply rhs l))
+
+derive (Divide l r) v =
+  let lhs = (derive l v)
+      rhs = (derive r v)
+  in case (lhs, rhs) of
+    _ -> (Divide (Subtract (Multiply lhs r) (Multiply rhs l)) (Exponent r (Constant 2)))
+
+derive (Exponent l r) v =
+  let ex = Multiply (MathFunction "ln" l) r
+  in
+  (Multiply (Exponent l r) (derive ex v))
 
 
 
--- reduceMathExpression :: MathExpression -> MathExpression
--- reduceMathExpression (ParenthesisExpression expr) =
---   case (reduceMathExpression expr) of
---     c @ (Constant _) -> c
---     v @ (Variable _) -> v
---     other @ _ -> ParenthesisExpression other
---
--- reduceMathExpression (Add lhs rhs) =
---   let slhs = reduceMathExpression lhs
---       srhs = reduceMathExpression rhs
---   in case (slhs, srhs) of
---
---     _ -> Add slhs srhs
---
--- reduceMathExpression (Subtract lhs rhs) =
---   let slhs = reduceMathExpression lhs
---       srhs = reduceMathExpression rhs
---   in case (slhs, srhs) of
---     (Constant 0, Constant a) -> (Constant $ negate a)
---     (Constant 0, _) -> Multiply (Constant $ negate 1) srhs
---     (_, Constant 0) -> slhs
---     (Constant a, Constant b) -> Constant (a-b)
---     _ -> Subtract slhs srhs
---
--- reduceMathExpression (Multiply lhs rhs) =
---   let slhs = reduceMathExpression lhs
---       srhs = reduceMathExpression rhs
---   in case (slhs, srhs) of
---     (Constant 0, _) -> Constant 0
---     (_, Constant 0) -> Constant 0
---     (Constant 1, _) -> srhs
---     (_, Constant 1) -> slhs
---     (Constant a, Constant b) -> Constant (a*b)
---     _ -> Multiply slhs srhs
---
--- reduceMathExpression (Divide lhs rhs) =
---   let slhs = reduceMathExpression lhs
---       srhs = reduceMathExpression rhs
---   in case (slhs, srhs) of
---     (Constant 0, _) -> Constant 0
---     (_, Constant 0) -> error "Divide by zero"
---     (_, Constant 1) -> slhs
---     (Constant a, Constant b) | (mod' a b) == 0.0 -> Constant (a/b)
---     _ -> Divide slhs srhs
---
--- reduceMathExpression (Exponent lhs rhs) =
---   let slhs = reduceMathExpression lhs
---       srhs = reduceMathExpression rhs
---   in case (slhs, srhs) of
---     (_, Constant 0) -> Constant 1
---     (Constant 0, _) -> Constant 0
---     (Constant 1, _) -> Constant 1
---     (_, Constant 1) -> slhs
---     (Constant a, Constant b) -> Constant (a ** b)
---     _ -> Exponent slhs srhs
---
--- reduceMathExpression other = other
+derive a _ = a
+
+-- integrate :: MathExpression -> Char -> MathExpression

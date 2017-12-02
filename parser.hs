@@ -4,14 +4,14 @@ module Parser where
 
   class ParserFor a where
     parser :: ReadP a
-    evaluate :: (Monad m) => String -> m a
+    evaluate :: String -> Either String a
     evaluate input =
       case readP_to_S (parser <* eof) input of
-        [] -> fail "Invalid input. Could not parse."
-        [(x, "")] -> return x
-        [(_, rest)] -> fail (
+        [] -> Left "Invalid input. Could not parse."
+        [(x, "")] -> Right x
+        [(_, rest)] -> Left (
             "Could not parse \"" ++ rest ++ "\""
           )
-        res @ (_:_) -> fail ("Ambiguous input" ++
+        res @ (_:_) -> Left ("Ambiguous input" ++
             concatMap (\(_,x) -> "\n\t" ++ x) res
           )
