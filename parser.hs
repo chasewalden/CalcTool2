@@ -1,5 +1,5 @@
 module Parser where
-  
+
   import Text.ParserCombinators.ReadP
 
   class ParserFor a where

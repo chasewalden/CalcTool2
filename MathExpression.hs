@@ -20,6 +20,8 @@ data MathExpression =
   MathFunction String MathExpression
   deriving (Show, Eq)
 
+
+
 -- parser
 
 instance ParserFor MathExpression where
@@ -54,7 +56,6 @@ instance ParserFor MathExpression where
           (Constant _, Nothing, Constant _) -> pfail
           (_, Nothing, Constant a) | a < 0 -> pfail
           _ -> return (Multiply lhs rhs)
-
         ) <++ (parse_exponent)
 
       parse_exponent = operator '^' parse_parenthesis Exponent

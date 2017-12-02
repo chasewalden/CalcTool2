@@ -1,10 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Parser
+import MathExpression
+
 import Web.Scotty
 
--- import MathUtil
+import Text.Blaze.Html.Renderer.Text
+
+import View
+
+blaze = html . renderHtml
+
 main = scotty 8000 $ do
-  get  "/" $ do
-    html "<form method='post' action='/'><input type='submit' ></form>"
+  get "/" $ do
+    blaze $ page_template Nothing
   post "/" $ do
-    html "Posted"
+    formula <- param "formula"
+    blaze $ page_template (Just formula)
